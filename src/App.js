@@ -14,7 +14,9 @@ class App extends Component {
                   <span className="copyright">®</span>
                 </div>
                 <div className="row">
-                  <div>display</div>
+                  <div className="led-display">
+                    <div className="led-text">111</div>
+                  </div>
                   <div className="push-button red-bg" />
                   <div className="push-button" />
                 </div>

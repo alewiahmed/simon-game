@@ -61,23 +61,27 @@
 }
 
 .green {
-  background: linear-gradient(to bottom right, #00ad10, #35ff35);
   border-top-left-radius: 100%;
+  box-shadow: inset 9px 10px 19px 5px #01b909;
+  background: linear-gradient(to bottom right, #00ad10, #35ff35);
 }
 
 .red {
-  background: linear-gradient(to bottom left, #fb1400, #ff674b);
   border-top-right-radius: 100%;
+  box-shadow: inset -9px 10px 19px 5px #d61902;
+  background: linear-gradient(to bottom left, #fb1400, #ff674b);
 }
 
 .yellow {
-  background: linear-gradient(to top right, yellow, #ffeb3b);
   border-bottom-left-radius: 100%;
+  box-shadow: inset 9px -10px 19px 5px #bfb500;
+  background: linear-gradient(to top right, yellow, #ffeb3b);
 }
 
 .blue {
-  background: linear-gradient(to top left, blue, #23a0ff);
   border-bottom-right-radius: 100%;
+  box-shadow: inset -9px -10px 19px 5px #0032b9;
+  background: linear-gradient(to top left, blue, #23a0ff);
 }
 
 .game-control {
@@ -158,4 +162,23 @@ h1 {
 
 .red-bg {
   background-color: red;
+}
+
+.led-display {
+  width: 60px;
+  padding: 5px 0;
+  border-radius: 10px;
+  background-color: #330000;
+  border: 3px solid #3d3d3d;
+}
+
+.led-text {
+  font-size: 23px;
+  color: #f31a07;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.game-name {
+  margin-top: 10px;
 }
