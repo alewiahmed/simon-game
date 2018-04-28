@@ -28,7 +28,7 @@
   align-items: center;
   border-radius: 250px;
   justify-content: center;
-  background-color: #3e3e3e;
+  background-color: #2f2f2f;
   box-shadow: 0px 0px 6px 3px black;
 }
 
@@ -57,7 +57,7 @@
   height: 100%;
   box-sizing: border-box;
   background-color: green;
-  border: 12px solid #3e3e3e;
+  border: 12px solid #2f2f2f;
 }
 
 .green {
@@ -92,11 +92,12 @@
   position: absolute;
   border-radius: 100%;
   align-items: center;
+  padding-bottom: 10px;
   flex-direction: column;
   box-sizing: border-box;
   justify-content: center;
   background-color: white;
-  border: 15px solid #3e3e3e;
+  border: 15px solid #2f2f2f;
 }
 
 .copyright {
@@ -112,6 +113,7 @@ h1 {
 .switch-container {
   width: 100px;
   height: 35px;
+  margin-top: 10px;
   justify-content: space-evenly;
 }
 
@@ -181,6 +183,7 @@ h1 {
 
 .game-name {
   margin-top: 10px;
+  color: #2f2f2f;
 }
 
 .mode-container {
@@ -196,9 +199,22 @@ h1 {
   position: absolute;
   background-color: #330000;
   border-radius: 100%;
-  border: 2px solid #3e3e3e;
+  border: 2px solid #2f2f2f;
 }
 
 .led-light.on {
   background-color: #f31a07;
+}
+
+.label {
+  margin-top: 7px;
+  font-size: 10px;
+}
+
+.align-center {
+  margin-bottom: 15px;
+}
+
+.align-end {
+  align-items: flex-end;
 }

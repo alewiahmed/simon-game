@@ -13,14 +13,23 @@ class App extends Component {
                   <h1>Simon</h1>
                   <span className="copyright">®</span>
                 </div>
-                <div className="row">
-                  <div className="led-display">
-                    <div className="led-text">111</div>
+                <div className="row align-end">
+                  <div>
+                    <div className="led-display">
+                      <div className="led-text">111</div>
+                    </div>
+                    <div className="label">COUNT</div>
                   </div>
-                  <div className="push-button red-bg" />
-                  <div className="mode-container">
-                    <div className="led-light" />
-                    <div className="push-button" />
+                  <div>
+                    <div className="push-button red-bg align-center" />
+                    <div className="label">START</div>
+                  </div>
+                  <div>
+                    <div className="mode-container align-center">
+                      <div className="led-light" />
+                      <div className="push-button" />
+                    </div>
+                    <div className="label">STRICT</div>
                   </div>
                 </div>
                 <div className="switch-container row">
