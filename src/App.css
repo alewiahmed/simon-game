@@ -104,3 +104,38 @@
 h1 {
   font-size: 55px;
 }
+
+.switch-container {
+  width: 100px;
+  height: 35px;
+  justify-content: space-evenly;
+}
+
+.switch-text {
+  font-size: 12px;
+  font-stretch: condensed;
+}
+
+.switch {
+  width: 40px;
+  height: 70%;
+  padding: 2px;
+  display: flex;
+  cursor: pointer;
+  border-radius: 2px;
+  align-items: center;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  background-color: #3d3d3d;
+}
+
+.switch-button {
+  width: 45%;
+  height: 100%;
+  border-radius: 2px;
+  background-color: #2196f3;
+}
+
+.switch.on {
+  justify-content: flex-end;
+}

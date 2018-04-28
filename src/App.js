@@ -18,7 +18,13 @@ class App extends Component {
                   <div>start</div>
                   <div>strict</div>
                 </div>
-                <div>on/off</div>
+                <div className="switch-container row">
+                  <div className="switch-text">OFF</div>
+                  <div className="switch">
+                    <div className="switch-button" />
+                  </div>
+                  <div className="switch-text">ON</div>
+                </div>
               </div>
               <div className="row">
                 <div className="single-button green" />
