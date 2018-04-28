@@ -5,7 +5,8 @@ class App extends Component {
   state = {
     display: '',
     power: false,
-    strictMode: false
+    strictMode: false,
+    buttonSelected: [false, false, false, false]
   };
 
   togglePower = () => {
@@ -23,6 +24,48 @@ class App extends Component {
       state.strictMode = !state.strictMode;
       return state;
     });
+  };
+
+  mouseDown = id => {
+    this.setState(state => {
+      state.buttonSelected[id] = true;
+      return state;
+    });
+  };
+
+  mouseUpHandler = id => {
+    this.setState(state => {
+      state.buttonSelected[id] = false;
+      return state;
+    });
+  };
+
+  showButtons = () => {
+    let { buttonSelected } = this.state;
+    let buttons = ['green', 'red', 'yellow', 'blue'];
+    let elements = [],
+      row = [],
+      selected = '';
+    buttons.forEach((button, index) => {
+      selected = buttonSelected[index] ? 'selected' : '';
+      row.push(
+        <div
+          key={index}
+          onMouseDown={() => this.mouseDown(index)}
+          onMouseUp={() => this.mouseUpHandler(index)}
+          className={`single-button ${buttons[index]} ${selected}`}
+        />
+      );
+      if ((index + 1) % 2 == 0) {
+        elements.push(
+          <div className="row" key={index}>
+            {row}
+          </div>
+        );
+        row = [];
+      }
+    });
+    return elements;
   };
 
   render() {
@@ -69,14 +112,7 @@ class App extends Component {
                   <div className="switch-text">ON</div>
                 </div>
               </div>
-              <div className="row">
-                <div className="single-button green" />
-                <div className="single-button red" />
-              </div>
-              <div className="row">
-                <div className="single-button yellow" />
-                <div className="single-button blue" />
-              </div>
+              {this.showButtons()}
             </div>
           </div>
         </div>

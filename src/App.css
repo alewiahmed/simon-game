@@ -55,33 +55,48 @@
 .single-button {
   width: 50%;
   height: 100%;
+  cursor: pointer;
   box-sizing: border-box;
   background-color: green;
   border: 12px solid #2f2f2f;
 }
 
 .green {
+  background-color: #16b127;
   border-top-left-radius: 100%;
-  box-shadow: inset 9px 10px 19px 5px #01b909;
-  background: linear-gradient(to bottom right, #00ad10, #35ff35);
+}
+
+.green.selected {
+  background-color: #35ff35;
+  border-top-left-radius: 100%;
 }
 
 .red {
+  background-color: #ad0d00;
   border-top-right-radius: 100%;
-  box-shadow: inset -9px 10px 19px 5px #d61902;
-  background: linear-gradient(to bottom left, #fb1400, #ff674b);
+}
+
+.red.selected {
+  background-color: #ff4c4c;
 }
 
 .yellow {
+  background-color: #dcc600;
   border-bottom-left-radius: 100%;
-  box-shadow: inset 9px -10px 19px 5px #bfb500;
-  background: linear-gradient(to top right, yellow, #ffeb3b);
+}
+
+.yellow.selected {
+  background-color: #ffeb3b;
+  border-bottom-left-radius: 100%;
 }
 
 .blue {
+  background-color: #00599c;
   border-bottom-right-radius: 100%;
-  box-shadow: inset -9px -10px 19px 5px #0032b9;
-  background: linear-gradient(to top left, blue, #23a0ff);
+}
+
+.blue.selected {
+  background-color: #23a0ff;
 }
 
 .game-control {
