@@ -3,8 +3,9 @@ import './App.css';
 
 class App extends Component {
   state = {
+    display: '',
     power: false,
-    display: ''
+    strictMode: false
   };
 
   togglePower = () => {
@@ -15,9 +16,19 @@ class App extends Component {
     });
   };
 
+  toggleStrict = () => {
+    let { power } = this.state;
+    if (!power) return;
+    this.setState(state => {
+      state.strictMode = !state.strictMode;
+      return state;
+    });
+  };
+
   render() {
-    let { power, display } = this.state;
+    let { power, display, strictMode } = this.state;
     let switchClass = power ? 'switch on' : 'switch';
+    let modeClass = strictMode ? 'led-light on' : 'led-light';
     return (
       <div className="App">
         <div className="container">
@@ -41,8 +52,11 @@ class App extends Component {
                   </div>
                   <div>
                     <div className="mode-container align-center">
-                      <div className="led-light" />
-                      <div className="push-button" />
+                      <div className={modeClass} />
+                      <div
+                        className="push-button"
+                        onClick={this.toggleStrict}
+                      />
                     </div>
                     <div className="label">STRICT</div>
                   </div>
