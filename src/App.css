@@ -182,3 +182,23 @@ h1 {
 .game-name {
   margin-top: 10px;
 }
+
+.mode-container {
+  display: flex;
+  position: relative;
+  justify-content: center;
+}
+
+.led-light {
+  width: 7px;
+  top: -15px;
+  height: 7px;
+  position: absolute;
+  background-color: #330000;
+  border-radius: 100%;
+  border: 2px solid #3e3e3e;
+}
+
+.led-light.on {
+  background-color: #f31a07;
+}

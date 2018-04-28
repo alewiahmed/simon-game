@@ -9,7 +9,7 @@ class App extends Component {
           <div className="outer-circle">
             <div className="inner-container">
               <div className="game-control">
-                <div className="row">
+                <div className="game-name row">
                   <h1>Simon</h1>
                   <span className="copyright">®</span>
                 </div>
@@ -18,7 +18,10 @@ class App extends Component {
                     <div className="led-text">111</div>
                   </div>
                   <div className="push-button red-bg" />
-                  <div className="push-button" />
+                  <div className="mode-container">
+                    <div className="led-light" />
+                    <div className="push-button" />
+                  </div>
                 </div>
                 <div className="switch-container row">
                   <div className="switch-text">OFF</div>
