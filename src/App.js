@@ -2,7 +2,22 @@ import React, { Component } from 'react';
 import './App.css';
 
 class App extends Component {
+  state = {
+    power: false,
+    display: ''
+  };
+
+  togglePower = () => {
+    this.setState(state => {
+      state.power = !state.power;
+      state.display = state.power ? '--' : '';
+      return state;
+    });
+  };
+
   render() {
+    let { power, display } = this.state;
+    let switchClass = power ? 'switch on' : 'switch';
     return (
       <div className="App">
         <div className="container">
@@ -16,7 +31,7 @@ class App extends Component {
                 <div className="row align-end">
                   <div>
                     <div className="led-display">
-                      <div className="led-text">111</div>
+                      <div className="led-text">{display}</div>
                     </div>
                     <div className="label">COUNT</div>
                   </div>
@@ -34,7 +49,7 @@ class App extends Component {
                 </div>
                 <div className="switch-container row">
                   <div className="switch-text">OFF</div>
-                  <div className="switch">
+                  <div className={switchClass} onClick={this.togglePower}>
                     <div className="switch-button" />
                   </div>
                   <div className="switch-text">ON</div>
