@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import { Subject, from, timer } from 'rxjs';
+import { map, take, timeout, zip } from 'rxjs/operators';
+
 import './App.css';
 
 class App extends Component {
@@ -6,14 +9,41 @@ class App extends Component {
     display: '',
     power: false,
     strictMode: false,
+    sequence: [],
     buttonSelected: [false, false, false, false]
   };
 
   togglePower = () => {
-    this.setState(state => {
-      state.power = !state.power;
-      state.display = state.power ? '--' : '';
-      return state;
+    let { power } = this.state;
+    if (power) {
+      this.clearEverything();
+    } else {
+      this.setState({
+        power: true,
+        display: '--'
+      });
+    }
+  };
+
+  listenToSequence = () => {
+    let { sequence } = this.state;
+    this.pushSubject = new Subject();
+    let pushObservable = from(sequence).pipe(
+      zip(this.pushSubject),
+      timeout(3000)
+    );
+    this.pushSubscription = pushObservable.subscribe({
+      next: value => {
+        if (value[0] !== value[1]) {
+          this.gameOver();
+        }
+      },
+      complete: () => {
+        this.newGame();
+      },
+      error: () => {
+        this.gameOver();
+      }
     });
   };
 
@@ -26,14 +56,122 @@ class App extends Component {
     });
   };
 
-  mouseDown = id => {
+  mouseDownHandler = id => {
+    this.selectButton(id);
+  };
+
+  mouseUpHandler = id => {
+    this.deSelectButton(id);
+    this.pushSubject.next(id);
+  };
+
+  clearEverything = () => {
+    if (this.pushSubscription) this.pushSubscription.unsubscribe();
+    this.setState({
+      display: '',
+      power: false,
+      sequence: [],
+      strictMode: false,
+      buttonSelected: [false, false, false, false]
+    });
+  };
+
+  clearGame = callback => {
+    if (this.pushSubscription) this.pushSubscription.unsubscribe();
+    this.setState(
+      {
+        display: '',
+        sequence: [],
+        buttonSelected: [false, false, false, false]
+      },
+      callback
+    );
+  };
+
+  playTone = (id, time) => {
+    this.selectButton(id);
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        this.deSelectButton(id);
+        resolve(true);
+      }, time);
+    });
+  };
+
+  playSequence = async () => {
+    let { sequence } = this.state;
+    if (!sequence.length) return;
+    let time = 500 + 1000 / sequence.length;
+    let sequenceRx = from(sequence);
+    let intervalRx = timer(0, time + 500).pipe(take(sequence.length));
+    sequenceRx = sequenceRx.pipe(zip(intervalRx), map(value => value[0]));
+    sequenceRx.subscribe({
+      next: value => {
+        this.playTone(value, time);
+      },
+      complete: () => {
+        setTimeout(() => {
+          this.listenToSequence();
+        }, 500 + time);
+      }
+    });
+  };
+
+  addToSequence = () => {
+    let random = Math.floor(Math.random() * 4);
+    this.setState(state => {
+      state.sequence.push(random);
+      return state;
+    }, this.playSequence);
+  };
+
+  newGame = () => {
+    setTimeout(() => {
+      this.addToSequence();
+    }, 1300);
+  };
+
+  startNew = () => {
+    let { power } = this.state;
+    if (!power) return;
+    this.clearGame(this.newGame);
+  };
+
+  replayGame = () => {
+    let { strictMode } = this.state;
+    if (strictMode) this.startNew();
+    else {
+      this.setState(
+        {
+          display: ''
+        },
+        this.playSequence
+      );
+    }
+  };
+
+  gameOver = () => {
+    this.pushSubscription.unsubscribe();
+    this.setState(
+      {
+        display: '!!'
+      },
+      () => {
+        setTimeout(() => {
+          this.replayGame();
+        }, 3000);
+      }
+    );
+  };
+
+  selectButton = id => {
     this.setState(state => {
       state.buttonSelected[id] = true;
       return state;
     });
   };
 
-  mouseUpHandler = id => {
+  deSelectButton = id => {
     this.setState(state => {
       state.buttonSelected[id] = false;
       return state;
@@ -51,7 +189,7 @@ class App extends Component {
       row.push(
         <div
           key={index}
-          onMouseDown={() => this.mouseDown(index)}
+          onMouseDown={() => this.mouseDownHandler(index)}
           onMouseUp={() => this.mouseUpHandler(index)}
           className={`single-button ${buttons[index]} ${selected}`}
         />
@@ -68,8 +206,15 @@ class App extends Component {
     return elements;
   };
 
+  showDisplay = () => {
+    let { display, sequence, power } = this.state;
+    if (!power) return;
+    if (display !== '') return display;
+    return sequence.length < 10 ? `0${sequence.length}` : sequence.length;
+  };
+
   render() {
-    let { power, display, strictMode } = this.state;
+    let { power, strictMode } = this.state;
     let switchClass = power ? 'switch on' : 'switch';
     let modeClass = strictMode ? 'led-light on' : 'led-light';
     return (
@@ -85,12 +230,15 @@ class App extends Component {
                 <div className="row align-end">
                   <div>
                     <div className="led-display">
-                      <div className="led-text">{display}</div>
+                      <div className="led-text">{this.showDisplay()}</div>
                     </div>
                     <div className="label">COUNT</div>
                   </div>
                   <div>
-                    <div className="push-button red-bg align-center" />
+                    <div
+                      onClick={this.startNew}
+                      className="push-button red-bg align-center"
+                    />
                     <div className="label">START</div>
                   </div>
                   <div>
