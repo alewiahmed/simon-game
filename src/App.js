@@ -8,8 +8,9 @@ class App extends Component {
   state = {
     display: '',
     power: false,
-    strictMode: false,
     sequence: [],
+    strictMode: false,
+    playEnabled: false,
     buttonSelected: [false, false, false, false]
   };
 
@@ -26,6 +27,9 @@ class App extends Component {
   };
 
   listenToSequence = () => {
+    this.setState({
+      playEnabled: true
+    });
     let { sequence } = this.state;
     this.pushSubject = new Subject();
     let pushObservable = from(sequence).pipe(
@@ -57,10 +61,12 @@ class App extends Component {
   };
 
   mouseDownHandler = id => {
+    let { playEnabled } = this.state;
     this.selectButton(id);
   };
 
   mouseUpHandler = id => {
+    let { playEnabled } = this.state;
     this.deSelectButton(id);
     this.pushSubject.next(id);
   };
@@ -72,6 +78,7 @@ class App extends Component {
       power: false,
       sequence: [],
       strictMode: false,
+      playEnabled: false,
       buttonSelected: [false, false, false, false]
     });
   };
@@ -82,6 +89,7 @@ class App extends Component {
       {
         display: '',
         sequence: [],
+        playEnabled: false,
         buttonSelected: [false, false, false, false]
       },
       callback
@@ -126,6 +134,9 @@ class App extends Component {
   };
 
   newGame = () => {
+    this.setState({
+      playEnabled: false
+    });
     setTimeout(() => {
       this.addToSequence();
     }, 1300);
@@ -154,7 +165,8 @@ class App extends Component {
     this.pushSubscription.unsubscribe();
     this.setState(
       {
-        display: '!!'
+        display: '!!',
+        playEnabled: false
       },
       () => {
         setTimeout(() => {
@@ -179,19 +191,21 @@ class App extends Component {
   };
 
   showButtons = () => {
-    let { buttonSelected } = this.state;
+    let { buttonSelected, playEnabled } = this.state;
     let buttons = ['green', 'red', 'yellow', 'blue'];
     let elements = [],
       row = [],
-      selected = '';
+      selected = '',
+      enabled = '';
     buttons.forEach((button, index) => {
       selected = buttonSelected[index] ? 'selected' : '';
+      enabled = playEnabled ? 'enabled' : '';
       row.push(
         <div
           key={index}
-          onMouseDown={() => this.mouseDownHandler(index)}
           onMouseUp={() => this.mouseUpHandler(index)}
-          className={`single-button ${buttons[index]} ${selected}`}
+          onMouseDown={() => this.mouseDownHandler(index)}
+          className={`single-button ${buttons[index]} ${selected} ${enabled}`}
         />
       );
       if ((index + 1) % 2 == 0) {

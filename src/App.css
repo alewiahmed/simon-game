@@ -55,10 +55,15 @@
 .single-button {
   width: 50%;
   height: 100%;
-  cursor: pointer;
+  pointer-events: none;
   box-sizing: border-box;
   background-color: green;
   border: 12px solid #2f2f2f;
+}
+
+.single-button.enabled {
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 .green {
