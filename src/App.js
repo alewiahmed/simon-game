@@ -77,13 +77,9 @@ class App extends Component {
   };
 
   clearEverything = () => {
-    let { sounds } = this.state;
     this.clearTimers();
-    sounds.forEach((_, index) => {
-      if (index) this.stopSound(index);
-    });
-
     this.clearSubscriptions();
+    this.stopEverySound();
     this.setState({
       display: '',
       sounds: [],
@@ -96,12 +92,9 @@ class App extends Component {
   };
 
   clearGame = callback => {
-    let { sounds } = this.state;
-    sounds.forEach(value => {
-      if (value) value.stop();
-    });
-
-    if (this.pushSubscription) this.pushSubscription.unsubscribe();
+    this.clearTimers();
+    this.clearSubscriptions();
+    this.stopEverySound();
     this.setState(
       {
         display: '',
@@ -125,6 +118,13 @@ class App extends Component {
     if (this.sequenceSubscription) this.sequenceSubscription.unsubscribe();
   };
 
+  stopEverySound = () => {
+    let { sounds } = this.state;
+    sounds.forEach((sound, index) => {
+      if (sound) this.stopSound(index);
+    });
+  };
+
   playButton = (id, time) => {
     this.selectButton(id);
     return new Promise((resolve, reject) => {
@@ -135,12 +135,20 @@ class App extends Component {
     });
   };
 
+  getSequenceTime = length => {
+    let times = [1000, 800, 600, 400];
+    if (length < 3) return times[0];
+    else if (length < 6) return times[1];
+    else if (length < 9) return times[2];
+    else return times[3];
+  };
+
   playSequence = async () => {
     let { sequence } = this.state;
     if (!sequence.length) return;
-    let time = 700 / sequence.length;
+    let time = this.getSequenceTime(sequence.length);
     let sequenceRx = from(sequence);
-    let intervalRx = timer(0, time + 500).pipe(take(sequence.length));
+    let intervalRx = timer(0, time + 300).pipe(take(sequence.length));
     sequenceRx = sequenceRx.pipe(zip(intervalRx), map(value => value[0]));
     this.sequenceSubscription = sequenceRx.subscribe({
       next: value => {
@@ -191,7 +199,7 @@ class App extends Component {
   };
 
   gameOver = () => {
-    this.pushSubscription.unsubscribe();
+    this.clearSubscriptions();
     this.setState(
       {
         display: '!!',
@@ -222,18 +230,15 @@ class App extends Component {
   };
 
   playSound = id => {
-    let { frequencies } = this.state;
-    let note = new Sound(this.audioContext);
-    this.setState(
-      state => {
-        state.sounds[id] = note;
-        return state;
-      },
-      () => {
-        let now = this.audioContext.currentTime;
-        note.play(frequencies[id], now);
-      }
-    );
+    let { frequencies, sounds } = this.state;
+    let note = sounds[id];
+    if (!note) note = new Sound(this.audioContext);
+    this.setState(state => {
+      state.sounds[id] = note;
+      return state;
+    });
+    let now = this.audioContext.currentTime;
+    note.play(frequencies[id], now);
   };
 
   stopSound = id => {
