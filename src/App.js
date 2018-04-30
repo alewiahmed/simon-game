@@ -6,13 +6,20 @@ import './App.css';
 
 class App extends Component {
   state = {
+    sounds: [],
     display: '',
     power: false,
     sequence: [],
     strictMode: false,
     playEnabled: false,
+    frequencies: [327.25, 493.88, 440.0, 392.0],
     buttonSelected: [false, false, false, false]
   };
+
+  componentDidMount() {
+    this.audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
+  }
 
   togglePower = () => {
     let { power } = this.state;
@@ -61,20 +68,25 @@ class App extends Component {
   };
 
   mouseDownHandler = id => {
-    let { playEnabled } = this.state;
     this.selectButton(id);
   };
 
   mouseUpHandler = id => {
-    let { playEnabled } = this.state;
     this.deSelectButton(id);
-    this.pushSubject.next(id);
+    if (this.pushSubject) this.pushSubject.next(id);
   };
 
   clearEverything = () => {
-    if (this.pushSubscription) this.pushSubscription.unsubscribe();
+    let { sounds } = this.state;
+    this.clearTimers();
+    sounds.forEach((_, index) => {
+      if (index) this.stopSound(index);
+    });
+
+    this.clearSubscriptions();
     this.setState({
       display: '',
+      sounds: [],
       power: false,
       sequence: [],
       strictMode: false,
@@ -84,6 +96,11 @@ class App extends Component {
   };
 
   clearGame = callback => {
+    let { sounds } = this.state;
+    sounds.forEach(value => {
+      if (value) value.stop();
+    });
+
     if (this.pushSubscription) this.pushSubscription.unsubscribe();
     this.setState(
       {
@@ -96,10 +113,22 @@ class App extends Component {
     );
   };
 
-  playTone = (id, time) => {
+  clearTimers = () => {
+    clearTimeout(this.listenTimeout);
+    clearTimeout(this.replayTimeout);
+    clearTimeout(this.sequenceTimeout);
+    clearTimeout(this.playButtonTimeout);
+  };
+
+  clearSubscriptions = () => {
+    if (this.pushSubscription) this.pushSubscription.unsubscribe();
+    if (this.sequenceSubscription) this.sequenceSubscription.unsubscribe();
+  };
+
+  playButton = (id, time) => {
     this.selectButton(id);
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
+      this.playButtonTimeout = setTimeout(() => {
         this.deSelectButton(id);
         resolve(true);
       }, time);
@@ -109,16 +138,16 @@ class App extends Component {
   playSequence = async () => {
     let { sequence } = this.state;
     if (!sequence.length) return;
-    let time = 500 + 1000 / sequence.length;
+    let time = 700 / sequence.length;
     let sequenceRx = from(sequence);
     let intervalRx = timer(0, time + 500).pipe(take(sequence.length));
     sequenceRx = sequenceRx.pipe(zip(intervalRx), map(value => value[0]));
-    sequenceRx.subscribe({
+    this.sequenceSubscription = sequenceRx.subscribe({
       next: value => {
-        this.playTone(value, time);
+        this.playButton(value, time);
       },
       complete: () => {
-        setTimeout(() => {
+        this.listenTimeout = setTimeout(() => {
           this.listenToSequence();
         }, 500 + time);
       }
@@ -137,7 +166,7 @@ class App extends Component {
     this.setState({
       playEnabled: false
     });
-    setTimeout(() => {
+    this.sequenceTimeout = setTimeout(() => {
       this.addToSequence();
     }, 1300);
   };
@@ -169,7 +198,7 @@ class App extends Component {
         playEnabled: false
       },
       () => {
-        setTimeout(() => {
+        this.replayTimeout = setTimeout(() => {
           this.replayGame();
         }, 3000);
       }
@@ -177,6 +206,7 @@ class App extends Component {
   };
 
   selectButton = id => {
+    this.playSound(id);
     this.setState(state => {
       state.buttonSelected[id] = true;
       return state;
@@ -184,10 +214,32 @@ class App extends Component {
   };
 
   deSelectButton = id => {
+    this.stopSound(id);
     this.setState(state => {
       state.buttonSelected[id] = false;
       return state;
     });
+  };
+
+  playSound = id => {
+    let { frequencies } = this.state;
+    let note = new Sound(this.audioContext);
+    this.setState(
+      state => {
+        state.sounds[id] = note;
+        return state;
+      },
+      () => {
+        let now = this.audioContext.currentTime;
+        note.play(frequencies[id], now);
+      }
+    );
+  };
+
+  stopSound = id => {
+    let { sounds } = this.state;
+    let now = this.audioContext.currentTime;
+    if (sounds[id]) sounds[id].stop(now);
   };
 
   showButtons = () => {
@@ -280,6 +332,38 @@ class App extends Component {
         </div>
       </div>
     );
+  }
+}
+
+class Sound {
+  constructor(context) {
+    this.context = context;
+  }
+
+  init() {
+    this.oscillator = this.context.createOscillator();
+    this.gainNode = this.context.createGain();
+
+    this.oscillator.connect(this.gainNode);
+    this.gainNode.connect(this.context.destination);
+    this.oscillator.type = 'sine';
+  }
+
+  play(value, time) {
+    this.init();
+
+    this.oscillator.frequency.value = value;
+    this.gainNode.gain.setValueAtTime(0, this.context.currentTime);
+    this.gainNode.gain.linearRampToValueAtTime(
+      0.5,
+      this.context.currentTime + 0.001
+    );
+    this.oscillator.start(time);
+  }
+
+  stop(time) {
+    this.gainNode.gain.exponentialRampToValueAtTime(0.001, time + 1);
+    this.oscillator.stop(time + 1);
   }
 }
 

@@ -86,12 +86,12 @@
 }
 
 .yellow {
-  background-color: #dcc600;
+  background-color: #d2bd00;
   border-bottom-left-radius: 100%;
 }
 
 .yellow.selected {
-  background-color: #ffeb3b;
+  background-color: #ffeb3a;
   border-bottom-left-radius: 100%;
 }
 
