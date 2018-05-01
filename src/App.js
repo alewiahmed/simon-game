@@ -144,15 +144,15 @@ class App extends Component {
         this.deSelectButton(id);
         this.stopSound(id);
         resolve(true);
-      }, time);
+      }, time - 175);
     });
   };
 
   getSequenceTime = length => {
-    let times = [1000, 800, 600, 400];
-    if (length < 3) return times[0];
-    else if (length < 6) return times[1];
-    else if (length < 9) return times[2];
+    let times = [1100, 900, 700, 500];
+    if (length < 5) return times[0];
+    else if (length < 10) return times[1];
+    else if (length < 15) return times[2];
     else return times[3];
   };
 
@@ -161,7 +161,7 @@ class App extends Component {
     if (!sequence.length) return;
     let time = this.getSequenceTime(sequence.length);
     let sequenceRx = from(sequence);
-    let intervalRx = timer(0, time + 300).pipe(take(sequence.length));
+    let intervalRx = timer(0, time).pipe(take(sequence.length));
     sequenceRx = sequenceRx.pipe(zip(intervalRx), map(value => value[0]));
     this.sequenceSubscription = sequenceRx.subscribe({
       next: value => {
