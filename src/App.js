@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Subject, from, timer } from 'rxjs';
-import { map, take, timeout, zip, count, retry } from 'rxjs/operators';
+import { map, take, timeout, zip } from 'rxjs/operators';
 
 import './App.css';
 
@@ -57,7 +57,8 @@ class App extends Component {
         else this.playSound(value[0]);
       },
       complete: () => {
-        this.newGame();
+        if (sequence.length === 20) this.anounceWin();
+        else this.newGame();
       },
       error: () => {
         this.gameOver();
@@ -112,6 +113,7 @@ class App extends Component {
   };
 
   clearTimers = () => {
+    clearTimeout(this.winTimeout);
     clearTimeout(this.listenTimeout);
     clearTimeout(this.replayTimeout);
     clearTimeout(this.sequenceTimeout);
@@ -123,6 +125,8 @@ class App extends Component {
     if (this.pushSubscription) this.pushSubscription.unsubscribe();
     if (this.blinkSubscription) this.blinkSubscription.unsubscribe();
     if (this.sequenceSubscription) this.sequenceSubscription.unsubscribe();
+    if (this.blinkButtonSubscription)
+      this.blinkButtonSubscription.unsubscribe();
   };
 
   stopEverySound = () => {
@@ -237,6 +241,22 @@ class App extends Component {
     });
   };
 
+  showBlinkingButton = (id, num) => {
+    let blinkRx = timer(0, 75).pipe(take(num * 2));
+
+    this.blinkButtonSubscription = blinkRx.subscribe({
+      next: value => {
+        if (value % 2 === 0) {
+          this.playSound(id);
+          this.selectButton(id);
+        } else {
+          this.deSelectButton(id);
+          this.stopSound(id);
+        }
+      }
+    });
+  };
+
   gameOver = () => {
     this.clearSubscriptions();
     this.playErrorSound();
@@ -324,7 +344,7 @@ class App extends Component {
           className={`single-button ${buttons[index]} ${selected} ${enabled}`}
         />
       );
-      if ((index + 1) % 2 == 0) {
+      if ((index + 1) % 2 === 0) {
         elements.push(
           <div className="row" key={index}>
             {row}
@@ -341,6 +361,18 @@ class App extends Component {
     if (!power) return;
     if (display !== null || sequence.length === 0) return display;
     return sequence.length < 10 ? `0${sequence.length}` : sequence.length;
+  };
+
+  anounceWin = buttonId => {
+    let { sequence } = this.state;
+    this.setState({
+      playEnabled: false
+    });
+    this.winTimeout = setTimeout(() => {
+      this.stopEverySound();
+      this.showBlinkingMessage('**', 3);
+      this.showBlinkingButton(sequence.pop(), 10);
+    }, 1500);
   };
 
   render() {
