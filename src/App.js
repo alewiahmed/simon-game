@@ -1,18 +1,17 @@
 import React, { Component } from 'react';
 import { Subject, from, timer } from 'rxjs';
-import { map, take, timeout, zip, count } from 'rxjs/operators';
+import { map, take, timeout, zip, count, retry } from 'rxjs/operators';
 
 import './App.css';
 
 class App extends Component {
   state = {
     sounds: [],
-    display: null,
     power: false,
     sequence: [],
+    display: null,
     strictMode: false,
     playEnabled: false,
-    frequencies: [327.25, 493.88, 440.0, 392.0],
     buttonSelected: [false, false, false, false]
   };
 
@@ -39,15 +38,23 @@ class App extends Component {
     });
     let { sequence } = this.state;
     this.pushSubject = new Subject();
+    this.releaseSubject = new Subject();
     let pushObservable = from(sequence).pipe(
       zip(this.pushSubject),
       timeout(3000)
     );
+
+    this.releaseSubscription = this.releaseSubject.subscribe({
+      next: value => {
+        this.deSelectButton(value);
+        this.stopSound(value);
+      }
+    });
     this.pushSubscription = pushObservable.subscribe({
       next: value => {
-        if (value[0] !== value[1]) {
-          this.gameOver();
-        }
+        this.selectButton(value[1]);
+        if (value[0] !== value[1]) this.gameOver();
+        else this.playSound(value[0]);
       },
       complete: () => {
         this.newGame();
@@ -68,12 +75,11 @@ class App extends Component {
   };
 
   mouseDownHandler = id => {
-    this.selectButton(id);
+    if (this.pushSubject) this.pushSubject.next(id);
   };
 
   mouseUpHandler = id => {
-    this.deSelectButton(id);
-    if (this.pushSubject) this.pushSubject.next(id);
+    if (this.releaseSubject) this.releaseSubject.next(id);
   };
 
   clearEverything = () => {
@@ -113,6 +119,7 @@ class App extends Component {
   };
 
   clearSubscriptions = () => {
+    if (this.releaseSubject) this.releaseSubject.unsubscribe();
     if (this.pushSubscription) this.pushSubscription.unsubscribe();
     if (this.blinkSubscription) this.blinkSubscription.unsubscribe();
     if (this.sequenceSubscription) this.sequenceSubscription.unsubscribe();
@@ -127,9 +134,11 @@ class App extends Component {
 
   playButton = (id, time) => {
     this.selectButton(id);
+    this.playSound(id);
     return new Promise((resolve, reject) => {
       this.playButtonTimeout = setTimeout(() => {
         this.deSelectButton(id);
+        this.stopSound(id);
         resolve(true);
       }, time);
     });
@@ -171,15 +180,19 @@ class App extends Component {
   };
 
   newGame = () => {
-    this.setState({
-      playEnabled: false
-    });
+    this.clearTimers();
     this.sequenceTimeout = setTimeout(() => {
       this.setState(
         {
-          display: null
+          display: null,
+          playEnabled: false,
+          buttonSelected: [false, false, false, false]
         },
-        this.addToSequence
+        () => {
+          this.stopEverySound();
+          this.clearSubscriptions();
+          this.addToSequence();
+        }
       );
     }, 2000);
   };
@@ -226,6 +239,13 @@ class App extends Component {
 
   gameOver = () => {
     this.clearSubscriptions();
+    this.playErrorSound();
+    this.stopEverySound();
+    setTimeout(() => {
+      this.setState({
+        buttonSelected: [false, false, false, false]
+      });
+    }, 1500);
     this.setState(
       {
         playEnabled: false
@@ -238,7 +258,6 @@ class App extends Component {
   };
 
   selectButton = id => {
-    this.playSound(id);
     this.setState(state => {
       state.buttonSelected[id] = true;
       return state;
@@ -246,7 +265,6 @@ class App extends Component {
   };
 
   deSelectButton = id => {
-    this.stopSound(id);
     this.setState(state => {
       state.buttonSelected[id] = false;
       return state;
@@ -254,8 +272,9 @@ class App extends Component {
   };
 
   playSound = id => {
-    let { frequencies, sounds } = this.state;
+    let { sounds } = this.state;
     let note = sounds[id];
+    let frequencies = [327.25, 493.88, 440.0, 392.0];
     if (!note) note = new Sound(this.audioContext);
     this.setState(state => {
       state.sounds[id] = note;
@@ -263,6 +282,22 @@ class App extends Component {
     });
     let now = this.audioContext.currentTime;
     note.play(frequencies[id], now);
+  };
+
+  playErrorSound = () => {
+    let frequency = 150;
+    this.errorSound = new Sound(this.audioContext, 'triangle');
+    let now = this.audioContext.currentTime;
+    this.errorSound.play(frequency, now);
+    setTimeout(() => {
+      this.stopErrorSound();
+    }, 700);
+  };
+
+  stopErrorSound = () => {
+    if (!this.errorSound) return;
+    let now = this.audioContext.currentTime;
+    this.errorSound.stop(now);
   };
 
   stopSound = id => {
@@ -365,8 +400,9 @@ class App extends Component {
 }
 
 class Sound {
-  constructor(context) {
+  constructor(context, type = 'sine') {
     this.context = context;
+    this.type = type;
   }
 
   init() {
@@ -375,7 +411,7 @@ class Sound {
 
     this.oscillator.connect(this.gainNode);
     this.gainNode.connect(this.context.destination);
-    this.oscillator.type = 'sine';
+    this.oscillator.type = this.type;
   }
 
   play(value, time) {
