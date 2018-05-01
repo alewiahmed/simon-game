@@ -37,11 +37,12 @@ class App extends Component {
       playEnabled: true
     });
     let { sequence } = this.state;
+    let time = this.getSequenceTime(sequence.length);
     this.pushSubject = new Subject();
     this.releaseSubject = new Subject();
     let pushObservable = from(sequence).pipe(
       zip(this.pushSubject),
-      timeout(3000)
+      timeout(4 * time)
     );
 
     this.releaseSubscription = this.releaseSubject.subscribe({
@@ -170,7 +171,7 @@ class App extends Component {
       complete: () => {
         this.listenTimeout = setTimeout(() => {
           this.listenToSequence();
-        }, 500 + time);
+        }, time);
       }
     });
   };
