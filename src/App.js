@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { Subject, from, timer } from 'rxjs';
-import { map, take, timeout, zip } from 'rxjs/operators';
+import { map, take, timeout, zip, count } from 'rxjs/operators';
 
 import './App.css';
 
 class App extends Component {
   state = {
     sounds: [],
-    display: '',
+    display: null,
     power: false,
     sequence: [],
     strictMode: false,
@@ -81,10 +81,10 @@ class App extends Component {
     this.clearSubscriptions();
     this.stopEverySound();
     this.setState({
-      display: '',
       sounds: [],
       power: false,
       sequence: [],
+      display: null,
       strictMode: false,
       playEnabled: false,
       buttonSelected: [false, false, false, false]
@@ -97,7 +97,6 @@ class App extends Component {
     this.stopEverySound();
     this.setState(
       {
-        display: '',
         sequence: [],
         playEnabled: false,
         buttonSelected: [false, false, false, false]
@@ -115,6 +114,7 @@ class App extends Component {
 
   clearSubscriptions = () => {
     if (this.pushSubscription) this.pushSubscription.unsubscribe();
+    if (this.blinkSubscription) this.blinkSubscription.unsubscribe();
     if (this.sequenceSubscription) this.sequenceSubscription.unsubscribe();
   };
 
@@ -175,40 +175,64 @@ class App extends Component {
       playEnabled: false
     });
     this.sequenceTimeout = setTimeout(() => {
-      this.addToSequence();
-    }, 1300);
+      this.setState(
+        {
+          display: null
+        },
+        this.addToSequence
+      );
+    }, 2000);
   };
 
   startNew = () => {
     let { power } = this.state;
     if (!power) return;
     this.clearGame(this.newGame);
+    this.showBlinkingMessage('--', 2);
   };
 
   replayGame = () => {
     let { strictMode } = this.state;
-    if (strictMode) this.startNew();
-    else {
-      this.setState(
-        {
-          display: ''
-        },
-        this.playSequence
-      );
-    }
+    this.replayTimeout = setTimeout(() => {
+      if (strictMode) this.startNew();
+      else {
+        this.setState(
+          {
+            display: null
+          },
+          this.playSequence
+        );
+      }
+    }, 3000);
+  };
+
+  showBlinkingMessage = (message, num) => {
+    let blinkRx = timer(0, 250).pipe(take(num * 2));
+
+    this.blinkSubscription = blinkRx.subscribe({
+      next: value => {
+        if (value % 2 === 0) {
+          this.setState({
+            display: ''
+          });
+        } else {
+          this.setState({
+            display: message
+          });
+        }
+      }
+    });
   };
 
   gameOver = () => {
     this.clearSubscriptions();
     this.setState(
       {
-        display: '!!',
         playEnabled: false
       },
       () => {
-        this.replayTimeout = setTimeout(() => {
-          this.replayGame();
-        }, 3000);
+        this.showBlinkingMessage('!!', 3);
+        this.replayGame();
       }
     );
   };
@@ -280,7 +304,7 @@ class App extends Component {
   showDisplay = () => {
     let { display, sequence, power } = this.state;
     if (!power) return;
-    if (display !== '') return display;
+    if (display !== null || sequence.length === 0) return display;
     return sequence.length < 10 ? `0${sequence.length}` : sequence.length;
   };
 
