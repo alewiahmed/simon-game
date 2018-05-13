@@ -1,14 +1,11 @@
-html {
+html,
+#root {
   height: 100%;
 }
 
 body {
   margin: 0;
-  padding: 0;
-  height: 100%;
+  padding: 20px;
   font-family: sans-serif;
-}
-
-#root {
-  height: 100%;
+  background-color: #427974;
 }
