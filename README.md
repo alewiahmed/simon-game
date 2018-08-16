@@ -1,8 +1,8 @@
-# FCC Personal Portfolio - Alewi Ahmed
+# FCC Simon Game
 
 Simon Game made for the Free Code Camp's Front End Development Course.
 
-![alt text](src/assets/simon-game 'Simon Game')
+![alt text](src/assets/simon-game.png 'Simon Game')
 
 To see it in action got to [Codepen demo](https://codepen.io/alewiahmed/full/gzKRgb/)
 
